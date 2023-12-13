@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "Small_CNC_Handle_Harness-cache")(type "Legacy")(uri "${KIPRJMOD}/Small_CNC_Handle_Harness-cache.lib")(options "")(descr ""))
+)
