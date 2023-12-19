@@ -1,3 +1,0 @@
-(sym_lib_table
-  (lib (name "SW_Rot_1x12_Daughterbrd-cache")(type "Legacy")(uri "${KIPRJMOD}/SW_Rot_1x12_Daughterbrd-cache.lib")(options "")(descr ""))
-)
