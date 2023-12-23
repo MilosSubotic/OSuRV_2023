@@ -144,6 +144,8 @@ private:
     return "";
   }
 
+
+;''/'''//''
   /*! \brief Autodetection of the force feedback device. If autodetection fails,
    *         returns empty string.
    * \param joy_dev A nonempty path to the joy device we search force feedback for.
