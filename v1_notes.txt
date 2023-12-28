@@ -13,3 +13,5 @@ https://github.com/Tasssadar/libenjoy
 
 Python:
 https://github.com/UbiquityRobotics/ubiquity_motor/blob/kinetic-devel/scripts/test_motor_board.py
+
+TREBA DA PULLUJEM NA SVOJ FORKOVAN REPOZITORIJUM, NE NA SUBOTICEV

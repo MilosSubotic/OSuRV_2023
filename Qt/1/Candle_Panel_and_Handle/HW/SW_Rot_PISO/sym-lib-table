@@ -1,3 +1,0 @@
-(sym_lib_table
-  (lib (name "SW_Rot_PISO-cache")(type "Legacy")(uri "${KIPRJMOD}/SW_Rot_PISO-cache.lib")(options "")(descr ""))
-)

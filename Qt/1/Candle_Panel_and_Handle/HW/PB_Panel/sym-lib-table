@@ -1,3 +1,0 @@
-(sym_lib_table
-  (lib (name "PB_Panel-cache")(type "Legacy")(uri "${KIPRJMOD}/PB_Panel-cache.lib")(options "")(descr ""))
-)

@@ -1,0 +1,24 @@
+SW/Test/test_app - OVO JE PATH GDE TREBA DA PROMENIMO STVARI
+
+potrebno je da napravimo kopiju test_servos
+wscript treba da promenim
+test_servos kopiju menjam i to ce biti zapravo nase resenje
+u gore pomenuti path treba kopirati fajlove biblioteke libenjoy
+
+--iz projekta obrisati qt, rpi_vision i s4a
+
+//-----------------------
+
+Shuffle Up - Button 4
+Shuffle Down - Button 6
+
+Move servo - Axis 1 - Gore -32767
+                      Dole  32767
+
+
+
+
+--TODO
+
+-izmeniti test_servos_projektni i wscript
+
