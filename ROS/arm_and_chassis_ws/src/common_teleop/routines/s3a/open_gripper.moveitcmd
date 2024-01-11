@@ -1,3 +1,0 @@
-%include _common.moveitcmd
-use hand
-go open_gripper
