@@ -1,0 +1,23 @@
+U svrhu ovog projekta koristicemo postojeci kod sa vezbi 7.
+
+Imamo servo motore i potrebno je implementirati funkcije za njihovo upravljanje koriscenjem analognog inputa sa joysticka
+Potrebno je da promenimo njihovu rutinu i da dodamo citanje inputa sa joysticka.
+
+Za kontrolu inputa sa joysticka koristimo biblioteku 'libenjoy.h' (https://github.com/Tasssadar/libenjoy).
+
+Ceo program bice implementiran u okviru dve datoteke koje se nalaze u okviru testne aplikacije (SW/Test/test_app): 'test_servos_projektni.c' i 'wscript.py'.
+
+Prvo belezimo koje motore zelimo da pomeramo i koje tastere sa joysticka zelimo da koristimo u tu svrhu.
+
+Sa joysticka smo identifikovali sledece komande:
+1) Za selekciju:
+Shuffle Up - Button 4
+Shuffle Down - Button 6
+
+2) Za pokretanje:
+Move servo - Axis 1 - Gore -32767
+                      Dole  32767
+
+U okviru koda koristimo promenljivu selectedServo koja nam pokazuje koji motor je trenutno odabran.
+Nakon sto izaberemo motor, uz pomoc Axis 1 pomeracemo robotsku ruku u odredjenom pravcu za ugao koji je unapred definisan u okviru koda.
+

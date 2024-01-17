@@ -19,9 +19,14 @@ import waflib
 
 one_file_programs = [
 	'test_pwm.c',
-	'test_servos.c',
 	'test_bldc.c',
 	'test_pwm_map.cpp'
+]
+
+test_servos_files = [
+	'test_servos.c',
+	'libenjoy.c',
+	'libenjoy_linux.c'
 ]
 
 def options(opt):
@@ -59,6 +64,14 @@ def build(bld):
 		bld.program(
 			target = p,
 			source = s,
+			use = 'motor_ctrl_driver',
+			install_path = False
+		)
+
+		bld.program(
+			target = 'test_servos',
+			source = test_servos_files,
+			includes = '.',
 			use = 'motor_ctrl_driver',
 			install_path = False
 		)

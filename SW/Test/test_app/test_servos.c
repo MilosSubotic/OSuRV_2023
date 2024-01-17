@@ -1,4 +1,3 @@
-
 #include <stdint.h> // uint16_t and family
 #include <stdio.h> // printf and family
 #include <unistd.h> // file ops
@@ -7,97 +6,16 @@
 #include <errno.h> // errno
 
 #include "motor_ctrl.h"
+#include "libenjoy.h"
 
+#define ANGLE_CHANGE 1
 
-void usage(FILE* f){
-	fprintf(f,
-"\nUsage: "\
-"\n	test_servos -h|--help"\
-"\n		print this help i.e."\
-"\n	test_servos w servo_idx duty"\
-"\n		write angle at servo_idx servo motor"
-"\n	test_servos r servo_idx"\
-"\n		read feedback angle of servo_idx servo motor"\
-"\n	servo_idx = [0, 6)"\
-"\n	duty = [0, 1000]"\
-"\n"
-	);
-}
+int main()
+{
+	int duty, r;
+	int selectedServo = 0;
 
-static inline int c_str_eq(const char* a, const char* b) {
-	return !strcmp(a, b);
-}
-
-int parse_args(
-	int argc,
-	char** argv,
-	char* p_op,
-	int* p_servo_idx,
-	int* p_angle
-) {
-	if(argc == 2){
-		if(c_str_eq(argv[1], "-h") || c_str_eq(argv[1], "--help")){
-			// Print help.
-			usage(stdout);
-			return 0;
-		}else{
-			// Error.
-			fprintf(stderr, "ERROR: Wrong argument \"%s\"!\n", argv[1]);
-			usage(stderr);
-			return 1;
-		}
-	}else if(argc == 3){
-		if(!c_str_eq(argv[1], "r")){
-			fprintf(stderr, "ERROR: Wrong command \"%s\"!\n", argv[1]);
-			usage(stderr);
-			return 2;
-		}
-		*p_op = 'r';
-		int n;
-		n = sscanf(argv[2], "%d", p_servo_idx);
-		if(n != 1){
-			fprintf(stderr, "ERROR: Invalid number \"%s\"!\n", argv[2]);
-			return 3;
-		}
-	}else if(argc == 4){
-		if(!c_str_eq(argv[1], "w")){
-			fprintf(stderr, "ERROR: Wrong command \"%s\"!\n", argv[1]);
-			usage(stderr);
-			return 2;
-		}
-		*p_op = 'w';
-		int n;
-		n = sscanf(argv[2], "%d", p_servo_idx);
-		if(n != 1){
-			fprintf(stderr, "ERROR: Invalid number \"%s\"!\n", argv[2]);
-			return 3;
-		}
-		n = sscanf(argv[3], "%d", p_angle);
-		if(n != 1){
-			fprintf(stderr, "ERROR: Invalid number \"%s\"!\n", argv[3]);
-			return 3;
-		}
-	}else{
-		// Error.
-		fprintf(stderr, "ERROR: Wrong number of arguments!\n");
-		usage(stderr);
-		return 1;
-	}
-	//TODO limits
-	return 0;
-}
-
-
-int main(int argc, char** argv){
-	char op;
-	int servo_idx;
-	int duty;
-	int r = parse_args(argc, argv, &op, &servo_idx, &duty);
-	if(r){
-		return r;
-	}
-
-	uint16_t duties[MOTOR_CLTR__N_SERVO] = {0};
+	uint16_t duties[MOTOR_CLTR__N_SERVO] = { 500 };
 	
 	int fd;
 	fd = open(DEV_FN, O_RDWR);
@@ -107,34 +25,147 @@ int main(int argc, char** argv){
 		return 4;
 	}
 	
-	
-	if(op == 'w'){
-		printf("duty = %d\n", duty);
-		duties[servo_idx] = duty; // [permilles]
-		
-		for(int i = 0; i < MOTOR_CLTR__N_SERVO; i++){
-			printf("duties[%d] = %d\n", i, duties[i]);
-		}
-		
-		r = write(fd, (char*)&duties, sizeof(duties));
-		if(r != sizeof(duties)){
-			fprintf(stderr, "ERROR: write went wrong!\n");
-			return 4;
-		}
-	}else if(op == 'r'){
-		r = read(fd, (char*)&duties, sizeof(duties));
-		if(r != sizeof(duties)){
-			fprintf(stderr, "ERROR: read went wrong!\n");
-			return 4;
-		}
-		for(int i = 0; i < MOTOR_CLTR__N_SERVO; i++){
-			printf("duties[%d] = %d\n", i, duties[i]);
-		}
-		
-		duty = duties[servo_idx]; // [permilles]
-		printf("duty = %d\n", duty);
-	}
+	libenjoy_context *ctx = libenjoy_init();  // initialize the library
+    libenjoy_joy_info_list *info;
 
+	// Updates internal list of joysticks. If you want auto-reconnect
+    // after re-plugging the joystick, you should call this every 1s or so
+	libenjoy_enumerate(ctx);
+
+	info = libenjoy_get_info_list(ctx);
+
+	if(info->count != 0) // just get the first joystick
+    {
+        libenjoy_joystick *joy;
+        printf("Opening joystick %s...", info->list[0]->name);
+        joy = libenjoy_open_joystick(ctx, info->list[0]->id);
+        if(joy)
+        {
+            int counter = 0;
+            libenjoy_event ev;
+
+            printf("Success!\n");
+            printf("Axes: %d btns: %d\n", libenjoy_get_axes_num(joy),libenjoy_get_buttons_num(joy));
+
+		
+		//////////////  PROGRAM  //////////////
+
+		while(1)
+		{
+			while(libenjoy_poll(ctx, &ev))
+            {
+                switch(ev.type)
+				{
+					//analog
+					case LIBENJOY_EV_AXIS:
+					{
+						if(ev.part_id == 1) //levi analog
+						{
+							
+							while(ev.data == 32767) //dole
+							{
+								if(duties[selectedServo] > ANGLE_CHANGE * 400 / 90)
+									duties[selectedServo] -= ANGLE_CHANGE * 400 / 90;
+								else
+									continue;
+
+								printf("%d", duties[selectedServo]);
+
+								r = write(fd, (char*)&duties, sizeof(duties));
+								if(r != sizeof(duties))
+								{
+									fprintf(stderr, "ERROR: write went wrong!\n");
+									return 4;
+								}
+
+								usleep(100000);
+							}
+								
+							while(ev.data == -32767) //gore
+							{
+								if(duties[selectedServo] < 900 - ANGLE_CHANGE * 400 / 90)
+									duties[selectedServo] += ANGLE_CHANGE * 400 / 90;
+								else
+									continue;
+
+								printf("%d", duties[selectedServo]);
+								
+								r = write(fd, (char*)&duties, sizeof(duties));
+								if(r != sizeof(duties)){
+									fprintf(stderr, "ERROR: write went wrong!\n");
+									return 4;
+								}
+
+								usleep(100000);
+							}
+						}
+						
+						break;
+					}
+
+					
+					//buttons
+					case LIBENJOY_EV_BUTTON:
+					{
+						if(ev.part_id == 4) //menjaj motore unapred
+						{
+							if(selectedServo < 3)
+								selectedServo++;
+						}
+						else if(ev.part_id == 6) //menjaj motore unazad
+						{
+							if(selectedServo > 0)
+								selectedServo--;
+						}
+
+						break;
+					}
+
+				}
+			}
+
+        	usleep(50000);
+
+        	counter += 50;
+        	if(counter >= 1000)
+        	{
+        	    libenjoy_enumerate(ctx);
+        	    counter = 0;
+        	}
+        }
+
+
+
+		/////////////////////////////////////////////
+
+
+
+		// Joystick is really closed in libenjoy_poll or libenjoy_close,
+            // because closing it while libenjoy_poll is in process in another thread
+            // could cause crash. Be sure to call libenjoy_poll(ctx, NULL); (yes,
+            // you can use NULL as event) if you will not poll nor libenjoy_close
+            // anytime soon.
+		libenjoy_close_joystick(joy);
+        
+		}
+        else
+            printf("Failed!\n");
+	}
+    else
+        printf("No joystick available\n");
+
+	
+	
+	// Frees memory allocated by that joystick list. Do not forget it!
+    libenjoy_free_info_list(info);
+	
+	
+	
+	
+	
+	// deallocates all memory used by lib. Do not forget this!
+    // libenjoy_poll must not be called during or after this call
+    libenjoy_close(ctx);
 	close(fd);
 
 	printf("End.\n");
