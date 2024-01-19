@@ -22,7 +22,7 @@ one_file_programs = [
 	'test_servos.c',
 	'test_bldc.c',
 	'test_pwm_map.cpp',
-	'test_joypad.cpp',
+	'test.c',
 ]
 
 def options(opt):
