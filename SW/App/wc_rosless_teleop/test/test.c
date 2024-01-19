@@ -17,7 +17,9 @@
 #include <sys/ioctl.h> // ioctl()
 #include <errno.h> //errno
 
-#include "/home/rtrk/Documents/OSuRV_2023/SW/Driver/motor_ctrl/include/motor_ctrl.h"// dev/motor_ctrl
+#include "/home/ana/Desktop/OSuRV_2023/SW/Driver/motor_ctrl/include/motor_ctrl.h"// dev/motor_ctrl
+
+static int16_t duty[2]; //duty[0] - BLDC, duty[1] - servo
 
 
 //Funkcija za konvertovanje brojeva joypad-a u duty kod servomotora
@@ -36,8 +38,8 @@ int joypad2duty(int joyNum){
 	int staro_min = -32767;
 	int staro_max = 32767;
 
-	int duty = (joyNum - staro_min) * (novo_max - novo_min) / (staro_max - staro_min) + novo_min;
-	return duty;
+	int duty_servo = (joyNum - staro_min) * (novo_max - novo_min) / (staro_max - staro_min) + novo_min;
+	return duty_servo;
 
 }
 
@@ -54,10 +56,10 @@ int joypad2speed(int joyNum){
 	}
 
 	// Linearno preslikavanje
-	int novo_min = 0;
+	int novo_min = -100;
 	int novo_max = 100;
-	int staro_min = -32767;
-	int staro_max = 0;
+	int staro_min = 32767;
+	int staro_max = -32767;
 
 	int speed = (joyNum - staro_min) * (novo_max - novo_min) / (staro_max - staro_min) + novo_min;
 	return speed;
@@ -66,29 +68,25 @@ int joypad2speed(int joyNum){
 }
 
 
-
 //Funkcija za upravljacki servo za skretanje
-int runServo(int duty){
-	
-	uint16_t duties[MOTOR_CLTR__N_SERVO] = {0};
-	int servo_idx = 1; //Servo motor je na channel 1
+int runServo(int duty_servo){
 
-	printf("duty = %d\n", duty);
-	duties[servo_idx] = duty; // [permilles]
-	
-	for(int i = 0; i < MOTOR_CLTR__N_SERVO; i++){
-		printf("duties[%d] = %d\n", i, duties[i]);
+	duty[1] = duty_servo;
+
+	for(int i = 0; i < 2; i++){
+		printf("duty[i] = %d\n", duty[i]);
 	}
-	
+
+
 	int fd;
-	int r = write(fd, (char*)&duties, sizeof(duties));
-	if(r != sizeof(duties)){
+	int s = sizeof(duty[1])*1;
+	int r = write(fd, (char*)&duty[1], s);
+	if(r != s){
 		fprintf(stderr, "ERROR: write went wrong!\n");
 		return 4;
-		
 	}
-	return 0;
 
+	return 0;
 
 }
 
@@ -96,7 +94,7 @@ int runServo(int duty){
 int runBLDC(int speed){ //BLDC je channel 0 ostali su servo
 
 	const uint16_t moduo = 20; // 5kHz
-	printf("moduo = %d\n", moduo);
+	//printf("moduo = %d\n", moduo);
 	
 	motor_ctrl__ioctl_arg_moduo_t ia;
 	ia.ch = 0;
@@ -104,11 +102,11 @@ int runBLDC(int speed){ //BLDC je channel 0 ostali su servo
 	int fd;
 	int r = ioctl(fd, IOCTL_MOTOR_CLTR_SET_MODUO, *(unsigned long*)&ia);
 	if(r){
-
+		
 		return 4; //ioctl went wrong returning
 	}
 	
-	int16_t duty[2];
+	
 	
 	// |speed| = [0, 100] -> threshold = [10, 0].
 	// it will be <<1 in write() so then will be [20, 0].
@@ -124,8 +122,12 @@ int runBLDC(int speed){ //BLDC je channel 0 ostali su servo
 		duty[0] = -threshold;
 	}
 	
-	printf("threshold = %d\n", threshold);
-	printf("duty = %d\n", duty[0]);
+	for(int i = 0; i < 2; i++){
+		printf("duty[i] = %d\n", duty[i]);
+	}
+	
+	//printf("threshold = %d\n", threshold);
+	//printf("duty = %d\n", duty[0]);
 	
 	// Write just channel 0, which is BLDC.
 	// Channel 1 is servo and here is not changed.
