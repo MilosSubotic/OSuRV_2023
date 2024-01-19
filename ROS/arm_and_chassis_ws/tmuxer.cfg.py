@@ -42,17 +42,19 @@ _targets = {
 			'driver': 'cd ../../SW/Driver/motor_ctrl/',
 			'app': 'cd ../../SW/App/wc_rosless_teleop/test/',
 			'dmesg': 'cd ../../SW/Driver/motor_ctrl/',
-		}
+		},
 		
 	],
 	'build' : [
-		'driver' : '''
-			make
-			''',
-		'app' : '''
-			./waf configure
-			./waf build
-			''',
+		{
+			'driver' : '''
+				make
+				''',
+			'app' : '''
+				./waf configure
+				./waf build
+				''',
+		},
 	],
 	'run': [
 		{
