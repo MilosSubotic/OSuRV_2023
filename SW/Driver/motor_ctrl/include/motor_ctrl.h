@@ -13,6 +13,7 @@
 #define DEV_NAME "motor_ctrl"
 #define DEV_FN "/dev/motor_ctrl"
 
+
 #define WIDE_PWM 1
 
 

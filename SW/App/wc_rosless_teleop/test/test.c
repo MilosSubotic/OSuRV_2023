@@ -17,7 +17,7 @@
 #include <sys/ioctl.h> // ioctl()
 #include <errno.h> //errno
 
-#include "/home/rtrk/Desktop/OSuRV_2023/OSuRV_2023/SW/Driver/motor_ctrl/include/motor_ctrl.h"// dev/motor_ctrl
+#include "/home/rtrk/Documents/OSuRV_2023/SW/Driver/motor_ctrl/include/motor_ctrl.h"// dev/motor_ctrl
 
 
 //Funkcija za konvertovanje brojeva joypad-a u duty kod servomotora
@@ -48,7 +48,7 @@ int joypad2duty(int joyNum){
 int joypad2speed(int joyNum){
 
 	// Provera da li je vrednost unutar opsega
-	if (joyNum < -32767 || joyNum > 0) {
+	if (joyNum < -32767 || joyNum > 32767) {
 		fprintf(stderr, "Vrednost van opsega (-32767 do 0)\n");
 		return -1; // Indikacija greške
 	}
